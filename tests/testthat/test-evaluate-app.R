@@ -4,6 +4,15 @@ test_that("confusion matrix and metrics match hand calculation", {
   expect_equal(unlist(m[c("TP","FP","TN","FN")]), c(TP=2, FP=1, TN=4, FN=1))
   expect_equal(m$precision, 2/3); expect_equal(m$recall, 2/3); expect_equal(m$fpr, 1/5); expect_equal(m$accuracy, 6/8)
   expect_equal(m$flagged, 3)
+  expect_equal(m$specificity, 4/5); expect_equal(m$f1, 2/3)       # F1 = 2PR/(P+R) = 2(2/3)(2/3)/(4/3)
+  expect_equal(m$specificity, 1 - m$fpr)
+  m4 <- confusion_metrics(c(TRUE, TRUE, FALSE, FALSE), c(TRUE, FALSE, FALSE, FALSE))  # TP1 FP1 TN2 FN0
+  expect_equal(c(m4$precision, m4$recall, m4$f1), c(0.5, 1, 2/3))
+})
+test_that("F1 and specificity are NA when undefined", {
+  m <- confusion_metrics(rep(FALSE, 4), rep(FALSE, 4)); expect_true(is.na(m$f1)); expect_equal(m$specificity, 1)
+  m2 <- confusion_metrics(rep(TRUE, 3), rep(TRUE, 3)); expect_true(is.na(m2$specificity)); expect_equal(m2$f1, 1)
+  m3 <- confusion_metrics(c(FALSE, TRUE), c(TRUE, FALSE)); expect_equal(m3$f1, NA_real_)   # P = R = 0 -> 0/0
 })
 test_that("undefined metrics are NA, never NaN/Inf", {
   m <- confusion_metrics(rep(FALSE, 5), rep(FALSE, 5)); expect_true(is.na(m$precision)); expect_true(is.na(m$recall))
@@ -46,10 +55,14 @@ test_that("app server logic works (testServer)", {
     session$setInputs(profile = "strict"); n_strict <- stats()$n_flagged
     session$setInputs(profile = "relaxed"); expect_lte(stats()$n_flagged, n_strict)
     session$setInputs(f_flag = "flagged"); expect_true(all(filtered()$flag))
+    session$setInputs(f_search = "zzz-no-such-record"); expect_equal(nrow(filtered()), 0)
+    f <- tempfile(); export_csv(filtered()[, show_cols], f); expect_equal(nrow(read.csv(f)), 0)
+    session$setInputs(f_search = "")
     session$setInputs(c_burst = 2); expect_true(lab()$flagged[4] >= lab()$flagged[2])
   })
 })
 test_that("app starts and serves HTTP", {
+  skip_on_os("windows")  # uses a Unix shell (&, $!, kill); the in-process testServer test above covers Windows
   skip_if(Sys.which("curl") == "", "curl missing")
   port <- 4399; log <- tempfile()
   system(sprintf("Rscript -e \"shiny::runApp('%s', port=%d, launch.browser=FALSE)\" > %s 2>&1 & echo $! > %s.pid",

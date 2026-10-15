@@ -329,6 +329,7 @@ body::before {
 /* ── Main Content Area ────────────────────────────────────── */
 #ll-main {
   flex: 1;
+  min-width: 0; /* let wide tables scroll inside their card instead of stretching the page */
   margin-left: var(--sidebar-w);
   min-height: 100vh;
   display: flex;
@@ -443,6 +444,7 @@ body::before {
 }
 .ll-card-body-compact {
   padding: var(--gap-md);
+  overflow-x: auto;
 }
 
 /* ── KPI Cards ────────────────────────────────────────────── */

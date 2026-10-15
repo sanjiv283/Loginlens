@@ -18,6 +18,7 @@ EVAL_IDX <- EVENTS$period == "evaluation"
 TRUTH    <- EVENTS$is_injected_anomaly[EVAL_IDX]
 PROFILES <- threshold_profiles()
 metric_cols <- c("precision", "recall", "fpr", "accuracy")
+table_cols  <- c(metric_cols, "specificity", "f1")
 fmt <- function(x) ifelse(is.na(x), "NA", sprintf("%.3f", x))
 
 # ── Dark Y2K ggplot theme ─────────────────────────────────────
@@ -518,7 +519,7 @@ server <- function(input, output, session) {
 
   output$lab_tbl <- renderTable({
     d <- lab()
-    for (m in metric_cols) d[[m]] <- fmt(d[[m]])
+    for (m in table_cols) d[[m]] <- fmt(d[[m]])
     d
   }, striped = TRUE, bordered = FALSE, hover = TRUE)
 

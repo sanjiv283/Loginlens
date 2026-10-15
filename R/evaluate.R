@@ -2,13 +2,18 @@
 
 safe_div <- function(a, b) if (is.na(b) || b == 0) NA_real_ else a / b
 
+# precision = TP/(TP+FP); recall = TP/(TP+FN); fpr = FP/(FP+TN); specificity = TN/(TN+FP) = 1 - fpr;
+# accuracy = (TP+TN)/N; f1 = 2PR/(P+R). Any zero denominator gives NA (never NaN/Inf).
 confusion_metrics <- function(flag, truth) {
   ok <- !is.na(flag) & !is.na(truth)
   f <- as.logical(flag[ok]); t <- as.logical(truth[ok])
   tp <- sum(f & t); fp <- sum(f & !t); tn <- sum(!f & !t); fn <- sum(!f & t)
+  prec <- safe_div(tp, tp + fp); rec <- safe_div(tp, tp + fn)
   data.frame(TP = tp, FP = fp, TN = tn, FN = fn, flagged = tp + fp,
-             precision = safe_div(tp, tp + fp), recall = safe_div(tp, tp + fn),
-             fpr = safe_div(fp, fp + tn), accuracy = safe_div(tp + tn, tp + fp + tn + fn))
+             precision = prec, recall = rec,
+             fpr = safe_div(fp, fp + tn), specificity = safe_div(tn, tn + fp),
+             accuracy = safe_div(tp + tn, tp + fp + tn + fn),
+             f1 = safe_div(2 * prec * rec, prec + rec))
 }
 
 # Compare several profiles on the same scored-feature table; truth is supplied only here.
