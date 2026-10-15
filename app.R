@@ -79,7 +79,14 @@ disclaimer_banner <- div(class = "ll-disclaimer",
 )
 
 # ── UI ────────────────────────────────────────────────────────
+# Bootstrap JS only (provides the tab plugin that tabsetPanel relies on). The bare tagList
+# UI does not load it, and the Y2K theme supplies all CSS, so the Bootstrap stylesheet is dropped.
+bootstrap_js_only <- htmltools::htmlDependency(
+  "bootstrap-js", "3.4.1", src = system.file("www/shared/bootstrap", package = "shiny"),
+  script = "js/bootstrap.min.js")
+
 ui <- tagList(
+  bootstrap_js_only,
   tags$head(
     tags$link(rel = "stylesheet", href = "style.css"),
     tags$link(rel = "preconnect", href = "https://fonts.googleapis.com"),
