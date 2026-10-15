@@ -954,6 +954,8 @@ table.table-striped tbody tr:nth-of-type(odd) {
 .container-fluid { padding: 0 !important; max-width: none !important; }
 h1.shiny-app-title { display: none !important; }
 .navbar { display: none !important; }
+/* Shiny's own tab strip: kept in the DOM (the sidebar clicks it) but never shown */
+ul.nav-tabs.shiny-tab-input { display: none !important; }
 .tab-content > .tab-pane { display: none !important; }
 .tab-content > .active { display: block !important; }
 
