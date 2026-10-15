@@ -1,0 +1,53 @@
+---
+title: "LoginLens"
+subtitle: "Statistical detection of unusual login activity in R (synthetic data)"
+output: powerpoint_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+setwd(normalizePath(file.path(getwd(), "..")))
+source("report/results.R")
+```
+
+## Problem and goal
+- Unusual logins (odd hours, bursts, spikes) are worth reviewing
+- Goal: transparent statistical rules, not a black box
+- All data synthetic; a flag means "unusual", not "attack"
+
+## Workflow
+![](figures/architecture.png)
+
+## Synthetic data
+- `r nrow(ev)` events, 25 users, 60 days (seed 42)
+- 30-day baseline (clean) + 30-day evaluation (`r sum(truth)` injected anomalies)
+- Normal noise: random-hour logins, mistyped-password streaks
+
+## Rule 1: login-hour rarity
+- Smoothed per-user hour probabilities, circular kernel (23:00 ~ 00:00)
+- Flag if P(hour) < r/24
+
+## Rule 2 and 3: frequency and bursts
+- z = (k - mean)/max(sd, 1), capped at 10
+- Burst: failures in trailing 10 minutes
+- Score = max of normalised components; flag if >= 1
+
+## Threshold profiles
+- relaxed (r 0.10, z 3.5, b 6), balanced (0.20, 3.0, 4), strict (0.30, 2.5, 3)
+
+## Results
+```{r}
+knitr::kable(fmt3(res[, c("profile", "TP", "FP", "TN", "FN", "precision", "recall", "fpr")]))
+```
+
+## Threshold comparison
+![](figures/threshold_comparison.png)
+
+## Limitations
+- Simulated data; self-injected anomalies
+- Normal approximation for counts; stable-habit assumption
+- Subtle anomalies are missed; results are not real-world evidence
+
+## Testing and app
+- 100 automated expectations, all passing
+- Shiny app: Overview, Login Explorer, Threshold Lab, Insights
